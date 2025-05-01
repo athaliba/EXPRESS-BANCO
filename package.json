@@ -1,0 +1,18 @@
+{
+  "name": "express-banco",
+  "version": "0.0.1",
+  "description": "PROJETO FULL STACK",
+  "main": "scr/index.js",
+  "type": "module",
+  "scripts": {
+    "start:app": "nodemon scr/index.js"
+  },
+  "author": "",
+  "dependencies": {
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  }
+}
