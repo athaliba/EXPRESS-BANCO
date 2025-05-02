@@ -4,7 +4,7 @@ const connect = async () => {
   try {
     mongoose.set("strictQuery", true);
     await mongoose.connect(process.env.MONGO_URI, {
-        dbName: process.env.MONGODB_NAME,
+        dbName: process.env.MONGO_DB_NAME,
     });
     console.log("MongoDB connected");
   } catch (error) {
