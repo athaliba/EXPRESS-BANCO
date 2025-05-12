@@ -1,5 +1,6 @@
-const securedExample = async (req, res) => {
-    console.log("Something that needs authentication has been done.");
-    return res.status(200).json({ message: 'This is a secure endpoint' });
-}
-export default{ securedExample };
+const securedExampleProcess = async (req, res) => {
+    console.log("Something that needs authetication was run here");
+    return res.status(200).json({ message: 'This is a secured endpoint' });
+};
+
+export default { securedExampleProcess: securedExampleProcess };

@@ -1,16 +1,16 @@
 import mongoose from "mongoose";
 
-const connect = async () => {
+const conectarBanco = async () => {
   try {
     mongoose.set("strictQuery", true);
     await mongoose.connect(process.env.MONGO_URI, {
-        dbName: process.env.MONGO_DB_NAME,
+      dbName: process.env.mongo_db_Name,
     });
-    console.log("MongoDB connected");
-  } catch (error) {
-    console.error("MongoDB connection error:", error);
-    process.exit(1);
+    console.log('MongoDB conectado com sucesso!');
+  } catch (erro) {
+    console.error('Erro ao conectar com o MongoDB', erro);
+    process.exit(1); // Encerra o processo com erro
   }
-};
+}
 
-export default { connect };
+export default { conectarBanco };
