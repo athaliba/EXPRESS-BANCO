@@ -1,58 +1,69 @@
 import bcrypt from 'bcrypt';
-import User from '../models/User.js';
+import Usuario from '../models/user.js';
 import jwt from 'jsonwebtoken';
+import servicoUsuario from '../services/user.service.js';
 
-const register = async (req, res) => {
-    console.log("register user: ", req.body);
+const registrar = async (req, res) => {
+  console.log("Registrando usuário", req.body);
 
-    if (!req.body || !req.body.username || !req.body.password) {
-        return res.status(400).json({ message: 'Username and password are required' });
-    }
+  if (!req.body || !req.body.username || !req.body.password || !req.body.email) {
+    return res.status(400).json({ mensagem: 'Nome de usuário, e-mail e senha são obrigatórios' });
+  }
 
-    const { username, password } = req.body;
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-    
-    try {
-        const savedUser = await User.create({ 
-            username,
-            password: hashedPassword 
-        });
-        console.log("savedUser: ", savedUser);
-        return res.status(200).json({ message: 'User registered successfully'});
-    } catch (error) {
-        console.error("Error saving user:", error);
-        return res.status(500).json({ message: `Error saving user: ${error}` });
-    }
+  const { username, email, password } = req.body;
+  const salt = await bcrypt.genSalt(10);
+  const senhaCriptografada = await bcrypt.hash(password, salt);
 
+  try {
+    const usuarioSalvo = await Usuario.create({
+      username,
+      email,
+      password: senhaCriptografada,
+    });
+
+    // const novoUsuario = await servicoUsuario.registrarUsuario({ username, email, password });
+    console.log("Usuário salvo", usuarioSalvo);
+    res.status(200).json({ mensagem: 'Usuário registrado com sucesso' });
+  } catch (erro) {
+    console.error("Erro ao salvar usuário", erro);
+    return res.status(500).json({ mensagem: `Erro ao salvar usuário: ${erro}` });
+  }
 };
 
 const login = async (req, res) => {
-    console.log("login user: ", req.body);
+  console.log("Fazendo login do usuário", req.body);
 
-    if (!req.body || !req.body.username || !req.body.password) {
-        return res.status(400).json({ message: 'Username and password are required' });
+  if (!req.body || !req.body.username || !req.body.email || !req.body.password) {
+    return res.status(400).json({ mensagem: 'Nome de usuário, e-mail e senha são obrigatórios' });
+  }
+
+  const { username, email, password } = req.body;
+
+  try {
+    const usuario = await Usuario.findOne({ username }).select('+password');
+    if (!usuario) {
+      console.error("Usuário não encontrado", username);
+      return res.status(404).json({ mensagem: 'Usuário não encontrado' });
     }
 
-    const { username, password } = req.body;
-
-    try {
-        const user = await User.findOne({ username }).select('+password');
-        if (!user) {
-            return res.status(401).json({ message: 'User not found' });
-        }
-        const isMatch = await bcrypt.compare(password, user.password);
-        console.log("isMatch: ", isMatch);
-        if (!isMatch) {
-            return res.status(401).json({ message: 'Invalid credentials' });
-        }
-        console.log("Login successful", user.username);
-        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-        return res.status(200).json({ message: 'Login successful', token });
-    } catch (error) {
-        console.error("Error logging in user:", error);
-        return res.status(500).json({ message: `Error logging in user: ${error}` });
+    if (usuario.email !== email) {
+      console.error("E-mail não corresponde", email);
+      return res.status(401).json({ mensagem: 'Credenciais inválidas' });
     }
+
+    const senhaCorreta = await bcrypt.compare(password, usuario.password);
+    if (!senhaCorreta) {
+      return res.status(401).json({ mensagem: 'Credenciais inválidas' });
+    }
+
+    console.log("Usuário logado", usuario.username);
+    const token = jwt.sign({ id: usuario._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+
+    res.status(200).json({ mensagem: 'Login realizado com sucesso', token });
+  } catch (erro) {
+    console.error("Erro ao fazer login", erro);
+    return res.status(500).json({ mensagem: `Erro ao fazer login: ${erro}` });
+  }
 };
 
-export default{ register,login };
+export default { registrar, login };
